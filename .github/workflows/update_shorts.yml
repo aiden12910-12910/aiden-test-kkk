@@ -2,7 +2,7 @@ name: GitHub 自动爬取短视频
 
 on:
   schedule:
-    - cron: '0 */3 * * *' # 每 3 小时全自动运行一次，防止视频直链过期
+    - cron: '0 */3 * * *' # 每 3 小时全自动运行一次
   workflow_dispatch:      # 允许你在网页上手动点击按钮立即刷新
 
 jobs:
@@ -11,18 +11,18 @@ jobs:
 
     steps:
     - name: 检出仓库代码
-      uses: actions/checkout@v4 # 恢复标准写法，不再报错
+      uses: actions/checkout@v4
 
     - name: 配置 Python 环境
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11' # 使用稳定的 Python 3.11
+        python-version: '3.11'
 
     - name: 安装强力防封版依赖
       run: |
         python -m pip install --upgrade pip
-        # 强制安装最新的 yt-dlp 开发版，确保绕过最新的 YouTube 限制
-        pip install --no-cache-dir --upgrade https://github.com
+        # ⭐ 改用官方源标准安装，绝对不会报后缀或解压错误
+        pip install --no-cache-dir --upgrade yt-dlp
 
     - name: 运行云端爬虫
       run: python scraper.py

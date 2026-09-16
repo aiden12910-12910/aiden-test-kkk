@@ -11,15 +11,12 @@ jobs:
 
     steps:
     - name: 检出仓库代码
-      uses: actions/checkout@v4
-      # 强制 checkout 插件在内部使用 Node.js 24 运行时环境
-      with:
-        force-node-version: 24
+      uses: actions/checkout@v4 # 恢复标准写法，不再报错
 
     - name: 配置 Python 环境
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11' # 升级到更加稳定的 Python 3.11 版本
+        python-version: '3.11' # 使用稳定的 Python 3.11
 
     - name: 安装强力防封版依赖
       run: |

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的专属 GitHub 视频流</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; overflow: hidden; font-family: sans-serif;
+        }
+        .container {
+            width: 100%; height: 100%;
+            scroll-snap-type: y mandatory; overflow-y: scroll;
+            scrollbar-width: none;
+        }
+        .container::-webkit-scrollbar { display: none; }
+        .video-card {
+            width: 100%; height: 100vh;
+            scroll-snap-align: start;
+            position: relative; display: flex; justify-content: center; align-items: center;
+        }
+        video {
+            width: 100%; height: 100%; object-fit: contain;
+        }
+        .info-overlay {
+            position: absolute; bottom: 40px; left: 20px;
+            color: white; text-shadow: 1px 1px 5px rgba(0,0,0,0.8);
+            z-index: 10; pointer-events: none;
+        }
+        .author { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .title { font-size: 14px; max-width: 80%; }
+        .audio-btn {
+            position: absolute; top: 20px; right: 20px; z-index: 100;
+            background: rgba(255,255,255,0.2); color: white; border: none;
+            padding: 10px 15px; border-radius: 20px; cursor: pointer; backdrop-filter: blur(5px);
+        }
+        #fakeDocs {
+            display: none; width: 100%; height: 100%; background: #f9fbfd;
+            position: absolute; top: 0; left: 0; z-index: 9999; padding: 50px; box-sizing: border-box;
+        }
+        .docs-title { font-size: 28px; color: #1f1f1f; font-family: 'Times New Roman', serif; margin-bottom: 20px; }
+        .docs-content { font-size: 16px; color: #3c4043; line-height: 1.6; text-align: justify; }
+    </style>
+</head>
+<body>
+
+    <!-- 老板键伪装层 -->
+    <div id="fakeDocs">
+        <div class="docs-title">Research Essay on Modern History and Computer Architecture</div>
+        <div class="docs-content">
+            Introduction: The evolution of computing systems in the late 20th century substantially altered educational paradigms. Access to computing devices like Chromebooks allows students to interact with global research databases in modern institutions...
+        </div>
+    </div>
+
+    <button class="audio-btn" id="audioBtn">🔇 点击开启声音</button>
+    <div class="container" id="videoContainer"></div>
+
+    <script>
+        let isMuted = true;
+        const audioBtn = document.getElementById('audioBtn');
+        const fakeDocs = document.getElementById('fakeDocs');
+
+        audioBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            audioBtn.innerText = isMuted ? "🔇 点击开启声音" : "🔊 声音已开启";
+            document.querySelectorAll('video').forEach(v => v.muted = isMuted);
+        });
+
+        // 🌟 老板键触发：按 ESC 键一键伪装
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('video').forEach(v => {
+                    v.pause();
+                    v.muted = true;
+                });
+                document.title = "Essay_Draft_v2.docx - Google Docs";
+                fakeDocs.style.display = 'block';
+            }
+        });
+
+        fetch('data.json')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('videoContainer');
+                
+                data.forEach((item, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'video-card';
+                    card.innerHTML = `
+                        <video id="video-${index}" loop playsinline muted src="${item.video_url}" poster="${item.thumbnail}"></video>
+                        <div class="info-overlay">
+                            <div class="author">@${item.author}</div>
+                            <div class="title">${item.title}</div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+                const options = { root: container, threshold: 0.6 };
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        const video = entry.target.querySelector('video');
+                        if (entry.isIntersecting && fakeDocs.style.display !== 'block') {
+                            video.play().catch(e => console.log("等待交互"));
+                        } else {
+                            video.pause();
+                        }
+                    });
+                }, options);
+
+                document.querySelectorAll('.video-card').forEach(card => observer.observe(card));
+            })
+            .catch(err => console.error("数据加载失败", err));
+    </script>
+</body>
+</html>

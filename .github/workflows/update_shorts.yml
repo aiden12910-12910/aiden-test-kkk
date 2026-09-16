@@ -1,0 +1,35 @@
+name: GitHub 自动爬取短视频
+
+on:
+  schedule:
+    - cron: '0 */3 * * *' # ⭐ 每 3 小时全自动运行一次，防止视频直链过期
+  workflow_dispatch:      # 允许你在网页上手动点击按钮立即刷新
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 检出仓库代码
+      uses: actions/checkout@v4
+
+    - name: 配置 Python 环境
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: 安装强力防封版依赖
+      run: |
+        python -m pip install --upgrade pip
+        # 强制安装最新的 yt-dlp 开发版，确保绕过最新的 YouTube 限制
+        pip install --no-cache-dir --upgrade https://github.com
+
+    - name: 运行云端爬虫
+      run: python scraper.py
+
+    - name: 自动提交更新到 GitHub
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add data.json
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Actions 自动刷新视频流数据" && git push)
